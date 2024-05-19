@@ -47,7 +47,7 @@ class CategoryController extends Controller
 
             $validated['slug'] = Str::slug($validated['name']);
 
-            $category =Category::create($validated);
+            $category = Category::create($validated);
         });
 
         return redirect()->route('admincategories.index');

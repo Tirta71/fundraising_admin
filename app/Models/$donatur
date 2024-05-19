@@ -1,9 +1,9 @@
 $donatur = new App\Models\Donatur();
-$donatur->total_amount = 2500000;
+$donatur->total_amount = 250000;
 $donatur->is_paid = false;
 $donatur->fundraising_id = 2;
-$donatur->notes = "jangan menyerah pada keadaan";
+$donatur->notes = "Semoga kucing nya sehat sehat";
 $donatur->phone_number = "08123123123";
-$donatur->name = 'tiara ramadhani';
+$donatur->name = 'Tiara Ramadhani';
 $donatur->proof = 'proofs/buktitrfxx.png';
 $donatur->save();
