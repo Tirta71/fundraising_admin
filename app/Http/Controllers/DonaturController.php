@@ -16,7 +16,7 @@ class DonaturController extends Controller
         $donaturs = Donatur::with(['fundraising'])->orderByDesc('id')->paginate(5);
         return view('admin.donaturs.index', compact('donaturs'));
     }
-
+    
     /**
      * Show the form for creating a new resource.
      */
