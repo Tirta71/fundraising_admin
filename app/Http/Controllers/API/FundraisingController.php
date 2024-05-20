@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Fundraising;
+use App\Models\FundraisingPhases;
 use Illuminate\Http\Request;
 
 class FundraisingController extends Controller
@@ -66,6 +67,12 @@ class FundraisingController extends Controller
     
         // Mengembalikan respons JSON dengan data fundraising yang sudah diperbarui
         return response()->json($fundraisingData, 200);
+    }
+
+    public function getAllFundraisingPhase()
+    {
+        $phases = FundraisingPhases::with('fundraising')->get();
+        return response()->json($phases);
     }
     
 

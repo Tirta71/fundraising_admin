@@ -16,4 +16,9 @@ class FundraisingPhases extends Model
         'photo',
         'notes',
     ];
+
+    public function fundraising()
+    {
+        return $this->belongsTo(Fundraising::class);
+    }
 }

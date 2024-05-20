@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Donatur;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class DonaturController extends Controller
 {
@@ -16,6 +18,8 @@ class DonaturController extends Controller
     {
         return Donatur::all();
     }
+
+    
 
     public function showByFundraisingId($id_fundraising)
     {
@@ -30,9 +34,15 @@ class DonaturController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function __construct()
+    {
+      
+        Config::$serverKey = config('midtrans.serverKey');
+        Config::$isProduction = config('midtrans.isProduction');
+        Config::$isSanitized = config('midtrans.isSanitized');
+        Config::$is3ds = config('midtrans.is3ds');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -41,32 +51,62 @@ class DonaturController extends Controller
             'fundraising_id' => 'required|integer',
             'total_amount' => 'required|numeric',
             'notes' => 'nullable|string',
-            'proof' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+           
         ]);
     
-      
-        $originalFilename = $request->file('proof')->getClientOriginalName();
+  
     
-     
-        $proofPath = $request->file('proof')->storeAs('proofs', $originalFilename, 'public');
-    
-    
-        $donatur = new Donatur([
+        // Simpan data donatur dengan status pembayaran false
+        $donatur = Donatur::create([
             'name' => $request->name,
             'phone_number' => $request->phone_number,
             'fundraising_id' => $request->fundraising_id,
             'total_amount' => $request->total_amount,
             'notes' => $request->notes,
             'is_paid' => false,
-            'proof' => $proofPath,
+       
         ]);
     
-      
-        $donatur->save();
+        // Siapkan parameter transaksi Midtrans tanpa item_details
+        $params = [
+            'transaction_details' => [
+                'order_id' => $donatur->id,
+                'gross_amount' => $request->total_amount,
+            ],
+            'customer_details' => [
+                'first_name' => $request->name,
+                'phone' => $request->phone_number,
+            ],
+        ];
     
-      
-        return response()->json(['message' => 'Donatur added successfully'], 201);
+        // Dapatkan token Snap dari Midtrans
+        $snapToken = Snap::getSnapToken($params);
+    
+        // Kembalikan respons dengan token Snap
+        return response()->json([
+            'message' => 'Donatur added successfully',
+            'snap_token' => $snapToken,
+        ], 201);
     }
+    
+
+    public function updatePaymentStatus(Request $request, $id)
+    {
+        try {
+            $donatur = Donatur::findOrFail($id);
+            $donatur->is_paid = true;
+            $donatur->save();
+    
+            return response()->json(['message' => 'Payment status updated successfully'], 200);
+        } catch (\Exception $e) {
+            // Handle error jika terjadi kesalahan dalam pembaruan status
+            return response()->json(['error' => 'Failed to update payment status'], 500);
+        }
+    }
+    
+    
+    
+
     
 
     /**
